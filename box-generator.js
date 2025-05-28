@@ -8,23 +8,10 @@ class BoxGenerator extends HTMLElement {
       depth: 100,
       thickness: 3,
       kerf: 0.1,
-      units: 'mm',
-      fingerWidth: 15
+      fingerWidth: 15,
+      fingerSpacing: 5,
+      units: 'mm'
     };
-  }
-
-  static get observedAttributes() {
-    return ['width', 'height', 'depth', 'thickness', 'kerf', 'units'];
-  }
-
-  attributeChangedCallback(name, oldValue, newValue) {
-    if (oldValue !== newValue) {
-      this.boxData[name] = parseFloat(newValue) || newValue;
-      if (this.shadowRoot.innerHTML) {
-        this.updateInputs();
-        this.generateBox();
-      }
-    }
   }
 
   connectedCallback() {
@@ -39,12 +26,11 @@ class BoxGenerator extends HTMLElement {
         :host {
           display: block;
           font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-          max-width: 1000px;
+          max-width: 1200px;
           margin: 0 auto;
           padding: 20px;
           background: #f8f9fa;
           border-radius: 12px;
-          box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
         
         .container {
@@ -66,21 +52,14 @@ class BoxGenerator extends HTMLElement {
           font-weight: 600;
         }
         
-        .header p {
-          color: #7f8c8d;
-          margin: 0;
-          font-size: 16px;
-        }
-        
         .controls {
           display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+          grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
           gap: 20px;
           margin-bottom: 30px;
           padding: 25px;
           background: #f8f9fa;
           border-radius: 8px;
-          border: 1px solid #e9ecef;
         }
         
         .input-group {
@@ -127,7 +106,7 @@ class BoxGenerator extends HTMLElement {
         }
         
         .preview {
-          min-height: 400px;
+          min-height: 500px;
           display: flex;
           align-items: center;
           justify-content: center;
@@ -138,7 +117,7 @@ class BoxGenerator extends HTMLElement {
         .svg-preview {
           width: 100%;
           height: 100%;
-          min-height: 400px;
+          min-height: 500px;
           border: 1px solid #f0f0f0;
           border-radius: 4px;
         }
@@ -161,17 +140,11 @@ class BoxGenerator extends HTMLElement {
           font-size: 14px;
           font-weight: 600;
           transition: all 0.3s ease;
-          box-shadow: 0 2px 10px rgba(0,123,255,0.3);
         }
         
         button:hover {
           background: linear-gradient(135deg, #0056b3, #004085);
           transform: translateY(-2px);
-          box-shadow: 0 4px 15px rgba(0,123,255,0.4);
-        }
-        
-        button:active {
-          transform: translateY(0);
         }
         
         .info-panel {
@@ -183,70 +156,43 @@ class BoxGenerator extends HTMLElement {
           font-size: 14px;
           color: #1565c0;
         }
-        
-        .dimensions-display {
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-          gap: 15px;
-          margin: 20px 0;
-          padding: 20px;
-          background: #f8f9fa;
-          border-radius: 6px;
-        }
-        
-        .dimension-item {
-          text-align: center;
-          padding: 10px;
-          background: white;
-          border-radius: 4px;
-          border: 1px solid #e9ecef;
-        }
-        
-        .dimension-value {
-          font-size: 18px;
-          font-weight: 600;
-          color: #007bff;
-          margin-bottom: 5px;
-        }
-        
-        .dimension-label {
-          font-size: 12px;
-          color: #6c757d;
-          text-transform: uppercase;
-          letter-spacing: 0.5px;
-        }
       </style>
       
       <div class="container">
         <div class="header">
           <h2>Generador de Cajas para Corte Láser</h2>
-          <p>Crea plantillas personalizadas para cajas con uniones finger joint</p>
+          <p>Crea plantillas personalizadas con uniones finger joint perfectas</p>
         </div>
         
         <div class="controls">
           <div class="input-group">
             <label for="width">Ancho (mm):</label>
-            <input type="number" id="width" value="${this.boxData.width}" min="10" step="1">
+            <input type="number" id="width" value="${this.boxData.width}" min="20" step="1">
           </div>
           
           <div class="input-group">
             <label for="height">Alto (mm):</label>
-            <input type="number" id="height" value="${this.boxData.height}" min="10" step="1">
+            <input type="number" id="height" value="${this.boxData.height}" min="20" step="1">
           </div>
           
           <div class="input-group">
             <label for="depth">Profundidad (mm):</label>
-            <input type="number" id="depth" value="${this.boxData.depth}" min="10" step="1">
+            <input type="number" id="depth" value="${this.boxData.depth}" min="20" step="1">
           </div>
           
           <div class="input-group">
             <label for="thickness">Grosor Material (mm):</label>
-            <input type="number" id="thickness" value="${this.boxData.thickness}" min="0.5" step="0.1">
+            <input type="number" id="thickness" value="${this.boxData.thickness}" min="1" step="0.1">
           </div>
           
           <div class="input-group">
-            <label for="fingerWidth">Ancho Dedo (mm):</label>
+            <label for="fingerWidth">Ancho Pestaña (mm):</label>
             <input type="number" id="fingerWidth" value="${this.boxData.fingerWidth}" min="5" step="1">
+          </div>
+          
+          <div class="input-group">
+            <label for="fingerSpacing">Espacio entre Pestañas (mm):</label>
+            <input type="number" id="fingerSpacing" value="${this.boxData.fingerSpacing}" min="1" step="1">
           </div>
           
           <div class="input-group">
@@ -255,32 +201,13 @@ class BoxGenerator extends HTMLElement {
           </div>
         </div>
         
-        <div class="dimensions-display">
-          <div class="dimension-item">
-            <div class="dimension-value">${this.boxData.width}mm</div>
-            <div class="dimension-label">Ancho</div>
-          </div>
-          <div class="dimension-item">
-            <div class="dimension-value">${this.boxData.height}mm</div>
-            <div class="dimension-label">Alto</div>
-          </div>
-          <div class="dimension-item">
-            <div class="dimension-value">${this.boxData.depth}mm</div>
-            <div class="dimension-label">Profundidad</div>
-          </div>
-          <div class="dimension-item">
-            <div class="dimension-value">${this.boxData.thickness}mm</div>
-            <div class="dimension-label">Grosor</div>
-          </div>
-        </div>
-        
         <div class="info-panel">
-          <strong>Información:</strong> Esta herramienta genera 6 piezas para una caja rectangular con uniones finger joint. 
-          Ajusta el kerf según tu cortadora láser (típicamente 0.1-0.2mm).
+          <strong>Configuración:</strong> Ancho Pestaña controla el tamaño de cada dedo. 
+          Espacio entre Pestañas controla la separación. El Kerf compensa el corte del láser.
         </div>
         
         <div class="preview-container">
-          <div class="preview-header">Vista Previa del Diseño</div>
+          <div class="preview-header">Vista Previa del Diseño - Layout Optimizado</div>
           <div class="preview">
             <svg class="svg-preview" id="svgPreview" viewBox="0 0 1000 800">
               <!-- El SVG se generará aquí -->
@@ -301,7 +228,6 @@ class BoxGenerator extends HTMLElement {
     inputs.forEach(input => {
       input.addEventListener('input', (e) => {
         this.boxData[e.target.id] = parseFloat(e.target.value) || e.target.value;
-        this.updateDimensionsDisplay();
         this.generateBox();
       });
     });
@@ -315,91 +241,79 @@ class BoxGenerator extends HTMLElement {
     });
   }
 
-  updateInputs() {
-    Object.keys(this.boxData).forEach(key => {
-      const input = this.shadowRoot.getElementById(key);
-      if (input) {
-        input.value = this.boxData[key];
-      }
-    });
-  }
-
-  updateDimensionsDisplay() {
-    const displays = this.shadowRoot.querySelectorAll('.dimension-value');
-    if (displays.length >= 4) {
-      displays[0].textContent = `${this.boxData.width}mm`;
-      displays[1].textContent = `${this.boxData.height}mm`;
-      displays[2].textContent = `${this.boxData.depth}mm`;
-      displays[3].textContent = `${this.boxData.thickness}mm`;
-    }
-  }
-
   generateBox() {
-    const { width, height, depth, thickness, kerf, fingerWidth } = this.boxData;
+    const { width, height, depth, thickness, kerf, fingerWidth, fingerSpacing } = this.boxData;
     const svg = this.shadowRoot.getElementById('svgPreview');
     
     if (!svg) return;
     
     svg.innerHTML = '';
 
-    // Configuración de layout
-    let currentX = 20;
-    let currentY = 20;
-    const spacing = 30;
-    const maxWidth = 900;
+    // Layout inteligente para evitar superposiciones
+    const margin = 20;
+    const spacing = 40;
+    
+    // Calcular posiciones para layout en grid
+    const positions = this.calculateLayout(width, height, depth, margin, spacing);
 
-    // Definir las 6 caras con sus configuraciones de uniones
+    // Definir las 6 caras con configuraciones correctas
     const faces = [
       { 
         name: 'Frente', 
         w: width, 
         h: height, 
-        edges: { top: 'slots', right: 'tabs', bottom: 'slots', left: 'slots' }
+        edges: { top: 'slots', right: 'tabs', bottom: 'slots', left: 'slots' },
+        pos: positions[0]
       },
       { 
         name: 'Atrás', 
         w: width, 
         h: height, 
-        edges: { top: 'slots', right: 'slots', bottom: 'slots', left: 'tabs' }
+        edges: { top: 'slots', right: 'slots', bottom: 'slots', left: 'tabs' },
+        pos: positions[1]
       },
       { 
         name: 'Izquierda', 
         w: depth, 
         h: height, 
-        edges: { top: 'slots', right: 'tabs', bottom: 'slots', left: 'tabs' }
+        edges: { top: 'slots', right: 'tabs', bottom: 'slots', left: 'tabs' },
+        pos: positions[2]
       },
       { 
         name: 'Derecha', 
         w: depth, 
         h: height, 
-        edges: { top: 'slots', right: 'slots', bottom: 'slots', left: 'tabs' }
+        edges: { top: 'slots', right: 'slots', bottom: 'slots', left: 'tabs' },
+        pos: positions[3]
       },
       { 
         name: 'Arriba', 
         w: width, 
         h: depth, 
-        edges: { top: 'tabs', right: 'tabs', bottom: 'tabs', left: 'tabs' }
+        edges: { top: 'tabs', right: 'tabs', bottom: 'tabs', left: 'tabs' },
+        pos: positions[4]
       },
       { 
         name: 'Abajo', 
         w: width, 
         h: depth, 
-        edges: { top: 'tabs', right: 'tabs', bottom: 'tabs', left: 'tabs' }
+        edges: { top: 'tabs', right: 'tabs', bottom: 'tabs', left: 'tabs' },
+        pos: positions[5]
       }
     ];
 
     faces.forEach((face, index) => {
-      // Crear grupo para la cara
       const group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
-      group.setAttribute('transform', `translate(${currentX}, ${currentY})`);
+      group.setAttribute('transform', `translate(${face.pos.x}, ${face.pos.y})`);
 
-      // Generar el path de la cara con finger joints
+      // Generar el path integrado con finger joints
       const pathElement = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-      const pathData = this.generateFaceWithFingerJoints(
+      const pathData = this.generateIntegratedFingerJointPath(
         face.w, 
         face.h, 
         thickness, 
         fingerWidth, 
+        fingerSpacing,
         kerf, 
         face.edges
       );
@@ -411,7 +325,7 @@ class BoxGenerator extends HTMLElement {
       
       group.appendChild(pathElement);
 
-      // Agregar etiqueta
+      // Etiqueta centrada
       const text = document.createElementNS('http://www.w3.org/2000/svg', 'text');
       text.setAttribute('x', face.w / 2);
       text.setAttribute('y', face.h / 2);
@@ -424,78 +338,89 @@ class BoxGenerator extends HTMLElement {
       group.appendChild(text);
 
       svg.appendChild(group);
-
-      // Calcular posición para la siguiente cara
-      currentX += face.w + spacing;
-      if (currentX > maxWidth) {
-        currentX = 20;
-        currentY += Math.max(height, depth) + spacing + 40;
-      }
     });
 
-    // Ajustar viewBox
-    svg.setAttribute('viewBox', `0 0 ${maxWidth + 40} ${currentY + Math.max(height, depth) + 40}`);
+    // Ajustar viewBox dinámicamente
+    const maxX = Math.max(...positions.map(p => p.x)) + Math.max(width, depth) + margin;
+    const maxY = Math.max(...positions.map(p => p.y)) + Math.max(height, depth) + margin;
+    svg.setAttribute('viewBox', `0 0 ${maxX} ${maxY}`);
   }
 
-  generateFaceWithFingerJoints(faceWidth, faceHeight, thickness, fingerWidth, kerf, edges) {
+  calculateLayout(width, height, depth, margin, spacing) {
+    // Layout inteligente en 2 filas para evitar superposiciones
+    const positions = [];
+    
+    // Fila 1: Frente, Atrás, Izquierda
+    positions.push({ x: margin, y: margin }); // Frente
+    positions.push({ x: margin + width + spacing, y: margin }); // Atrás
+    positions.push({ x: margin + width * 2 + spacing * 2, y: margin }); // Izquierda
+    
+    // Fila 2: Derecha, Arriba, Abajo
+    const row2Y = margin + height + spacing;
+    positions.push({ x: margin, y: row2Y }); // Derecha
+    positions.push({ x: margin + depth + spacing, y: row2Y }); // Arriba
+    positions.push({ x: margin + depth + width + spacing * 2, y: row2Y }); // Abajo
+    
+    return positions;
+  }
+
+  generateIntegratedFingerJointPath(faceWidth, faceHeight, thickness, fingerWidth, fingerSpacing, kerf, edges) {
     let path = `M 0 0 `;
     
-    // Calcular número de dedos por borde
-    const fingersTop = Math.max(1, Math.floor(faceWidth / (fingerWidth * 2)) * 2 + 1);
-    const fingersRight = Math.max(1, Math.floor(faceHeight / (fingerWidth * 2)) * 2 + 1);
-    const fingersBottom = fingersTop;
-    const fingersLeft = fingersRight;
-    
-    const segmentWidthTop = faceWidth / fingersTop;
-    const segmentHeightRight = faceHeight / fingersRight;
-
     // Borde superior
-    path += this.generateEdgeWithFingers(
-      faceWidth, segmentWidthTop, fingersTop, thickness, kerf, edges.top, 'horizontal', 1
+    path += this.generateEdgeWithIntegratedFingers(
+      faceWidth, fingerWidth, fingerSpacing, thickness, kerf, edges.top, 'horizontal', 1
     );
 
     // Borde derecho
-    path += this.generateEdgeWithFingers(
-      faceHeight, segmentHeightRight, fingersRight, thickness, kerf, edges.right, 'vertical', 1
+    path += this.generateEdgeWithIntegratedFingers(
+      faceHeight, fingerWidth, fingerSpacing, thickness, kerf, edges.right, 'vertical', 1
     );
 
     // Borde inferior
-    path += this.generateEdgeWithFingers(
-      faceWidth, segmentWidthTop, fingersBottom, thickness, kerf, edges.bottom, 'horizontal', -1
+    path += this.generateEdgeWithIntegratedFingers(
+      faceWidth, fingerWidth, fingerSpacing, thickness, kerf, edges.bottom, 'horizontal', -1
     );
 
     // Borde izquierdo
-    path += this.generateEdgeWithFingers(
-      faceHeight, segmentHeightRight, fingersLeft, thickness, kerf, edges.left, 'vertical', -1
+    path += this.generateEdgeWithIntegratedFingers(
+      faceHeight, fingerWidth, fingerSpacing, thickness, kerf, edges.left, 'vertical', -1
     );
 
     path += 'Z';
     return path;
   }
 
-  generateEdgeWithFingers(edgeLength, segmentLength, numSegments, thickness, kerf, edgeType, orientation, direction) {
+  generateEdgeWithIntegratedFingers(edgeLength, fingerWidth, fingerSpacing, thickness, kerf, edgeType, orientation, direction) {
     let path = '';
+    let currentPos = 0;
+    const adjustedFingerWidth = fingerWidth - kerf;
+    const adjustedThickness = thickness - kerf;
     
-    for (let i = 0; i < numSegments; i++) {
-      const isFinger = (i % 2 === 0);
+    while (currentPos < edgeLength) {
+      const remainingLength = edgeLength - currentPos;
+      const segmentLength = Math.min(fingerWidth, remainingLength);
       
-      if (isFinger && edgeType === 'tabs') {
-        // Dedo que sale
+      // Determinar si es pestaña o hueco
+      const fingerIndex = Math.floor(currentPos / (fingerWidth + fingerSpacing));
+      const isFingerSegment = (fingerIndex % 2 === 0);
+      
+      if (isFingerSegment && edgeType === 'tabs') {
+        // Pestaña que sale
         if (orientation === 'horizontal') {
           path += `h ${segmentLength * direction} `;
         } else {
           path += `v ${segmentLength * direction} `;
         }
-      } else if (isFinger && edgeType === 'slots') {
-        // Parte normal del borde
+      } else if (isFingerSegment && edgeType === 'slots') {
+        // Borde normal
         if (orientation === 'horizontal') {
           path += `h ${segmentLength * direction} `;
         } else {
           path += `v ${segmentLength * direction} `;
         }
-      } else if (!isFinger && edgeType === 'tabs') {
-        // Espacio entre dedos que salen
-        const adjustedThickness = thickness + kerf;
+      } else if (!isFingerSegment && edgeType === 'tabs') {
+        // Espacio entre pestañas que salen
         if (orientation === 'horizontal') {
           path += `v ${direction > 0 ? adjustedThickness : -adjustedThickness} `;
           path += `h ${segmentLength * direction} `;
@@ -506,8 +431,7 @@ class BoxGenerator extends HTMLElement {
           path += `h ${direction > 0 ? adjustedThickness : -adjustedThickness} `;
         }
       } else {
-        // Hueco para dedo entrante
-        const adjustedThickness = thickness - kerf;
+        // Hueco para pestaña entrante
         if (orientation === 'horizontal') {
           path += `v ${direction > 0 ? -adjustedThickness : adjustedThickness} `;
           path += `h ${segmentLength * direction} `;
@@ -518,6 +442,8 @@ class BoxGenerator extends HTMLElement {
           path += `h ${direction > 0 ? -adjustedThickness : adjustedThickness} `;
         }
       }
+      
+      currentPos += fingerWidth + fingerSpacing;
     }
     
     return path;
@@ -539,14 +465,12 @@ class BoxGenerator extends HTMLElement {
     const dxfBlob = new Blob([dxfContent], { type: 'application/dxf' });
     
     const downloadLink = document.createElement('a');
-    downloadLink.href = URL.createObjectURL(dxfBlob);
+    downloadLink.href = URL.createObjectURL(svgBlob);
     downloadLink.download = `caja_${this.boxData.width}x${this.boxData.height}x${this.boxData.depth}.dxf`;
     downloadLink.click();
   }
 
   generateDXF() {
-    const { width, height, depth } = this.boxData;
-    
     return `0
 SECTION
 2
@@ -560,72 +484,15 @@ ENDSEC
 0
 SECTION
 2
-TABLES
-0
-ENDSEC
-0
-SECTION
-2
-BLOCKS
-0
-ENDSEC
-0
-SECTION
-2
 ENTITIES
-0
-LINE
-8
-0
-10
-0
-20
-0
-11
-${width}
-21
-0
-0
-LINE
-8
-0
-10
-${width}
-20
-0
-11
-${width}
-21
-${height}
-0
-LINE
-8
-0
-10
-${width}
-20
-${height}
-11
-0
-21
-${height}
-0
-LINE
-8
-0
-10
-0
-20
-${height}
-11
-0
-21
-0
 0
 ENDSEC
 0
 EOF`;
   }
 }
+
+customElements.define('box-generator', BoxGenerator);
+
 
 customElements.define('box-generator', BoxGenerator);

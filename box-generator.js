@@ -493,6 +493,3 @@ EOF`;
 }
 
 customElements.define('box-generator', BoxGenerator);
-
-
-customElements.define('box-generator', BoxGenerator);
